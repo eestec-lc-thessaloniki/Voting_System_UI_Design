@@ -1,0 +1,389 @@
+.page {
+    min-height: 100vh;
+    background: #0d1f17;
+    color: #e8e0cc;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    display: flex;
+    flex-direction: column;
+}
+
+.topBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    background: #0a1a12;
+    border-bottom: 1px solid #1e3d28;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.backBtn {
+    background: none;
+    border: 1px solid #2e5c3a;
+    color: #8ab89a;
+    padding: 0.4rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: border-color 0.2s, color 0.2s;
+}
+.backBtn:hover {
+    border-color: #c5a84b;
+    color: #c5a84b;
+}
+
+.topBarCenter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.pageLabel {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #5a8a6a;
+}
+
+.pollTitle {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #e8e0cc;
+    max-width: 40ch;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.connStatus {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.connDot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.connAlive {
+    background: #4caf72;
+    box-shadow: 0 0 8px #4caf7299;
+    animation: pulse 2s infinite;
+}
+
+.connDead {
+    background: #6b3535;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+}
+
+.connLabel {
+    font-size: 0.8rem;
+    color: #8ab89a;
+    letter-spacing: 0.05em;
+}
+
+.closedBanner {
+    background: #1e3428;
+    border-bottom: 1px solid #2e5c3a;
+    padding: 0.7rem 2rem;
+    font-size: 0.9rem;
+    color: #c5a84b;
+    text-align: center;
+    letter-spacing: 0.05em;
+}
+
+.errorBanner {
+    background: #3a1a1a;
+    border-bottom: 1px solid #6b3535;
+    padding: 0.7rem 2rem;
+    font-size: 0.9rem;
+    color: #e07070;
+    text-align: center;
+}
+
+.waitingState {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    color: #5a8a6a;
+    font-size: 0.95rem;
+}
+
+.pulse {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid #2e5c3a;
+    border-top-color: #c5a84b;
+    animation: spin 1.2s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.content {
+    flex: 1;
+    max-width: 860px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.winnerBanner {
+    background: linear-gradient(135deg, #1e3d28 0%, #253a1a 100%);
+    border: 1px solid #c5a84b;
+    border-radius: 6px;
+    padding: 1rem 1.5rem;
+    font-size: 1.05rem;
+    color: #e8e0cc;
+    text-align: center;
+    letter-spacing: 0.04em;
+}
+
+.winnerBanner strong {
+    color: #c5a84b;
+    font-size: 1.15rem;
+}
+
+.quorumSection {
+    background: #0f2419;
+    border: 1px solid #1e3d28;
+    border-radius: 6px;
+    padding: 1.2rem 1.5rem;
+}
+
+.quorumHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.75rem;
+}
+
+.quorumLabel {
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #5a8a6a;
+}
+
+.quorumCount {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #8ab89a;
+    font-variant-numeric: tabular-nums;
+    transition: color 0.4s;
+}
+
+.quorumReached {
+    color: #c5a84b;
+}
+
+.quorumTrack {
+    position: relative;
+    height: 10px;
+    background: #1a2f22;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.quorumFill {
+    height: 100%;
+    background: #2e7d4f;
+    border-radius: 5px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.quorumFillReached {
+    background: #c5a84b;
+}
+
+.quorumMarker {
+    position: absolute;
+    right: 0;
+    top: -2px;
+    bottom: -2px;
+    width: 2px;
+    background: #3a5a48;
+}
+
+.quorumReachedMsg {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: #c5a84b;
+    letter-spacing: 0.08em;
+}
+
+.totalRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background: #0f2419;
+    border: 1px solid #1e3d28;
+    border-radius: 6px;
+}
+
+.totalLabel {
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #5a8a6a;
+}
+
+.totalCount {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #e8e0cc;
+    font-variant-numeric: tabular-nums;
+    transition: color 0.3s;
+}
+
+.candidates {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.candidateCard {
+    background: #0f2419;
+    border: 1px solid #1e3d28;
+    border-radius: 6px;
+    padding: 1.2rem 1.5rem;
+    transition: border-color 0.3s;
+}
+
+.candidateLeader {
+    border-color: #c5a84b44;
+    background: #111f16;
+}
+
+.candidateHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.leadBadge {
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: #c5a84b22;
+    color: #c5a84b;
+    border: 1px solid #c5a84b55;
+    border-radius: 3px;
+    padding: 0.15rem 0.5rem;
+}
+
+.candidateName {
+    flex: 1;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #e8e0cc;
+}
+
+.candidateTotal {
+    font-size: 0.85rem;
+    color: #5a8a6a;
+    font-variant-numeric: tabular-nums;
+}
+
+
+.voteBreakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.voteRow {
+    display: grid;
+    grid-template-columns: 4.5rem 1fr 5.5rem;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.voteLabel {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #5a8a6a;
+}
+
+.barTrack {
+    height: 6px;
+    background: #1a2f22;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.barFillFor {
+    height: 100%;
+    background: #4caf72;
+    border-radius: 3px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.barFillAgainst {
+    height: 100%;
+    background: #c0504d;
+    border-radius: 3px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.barFillBlank {
+    height: 100%;
+    background: #4a6a58;
+    border-radius: 3px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.voteNum {
+    font-size: 0.8rem;
+    color: #8ab89a;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.voteNum em {
+    font-style: normal;
+    color: #4a6a58;
+    font-size: 0.75rem;
+}
+
+
+@media (max-width: 600px) {
+    .topBar {
+        padding: 0.75rem 1rem;
+        gap: 0.5rem;
+    }
+
+    .pollTitle {
+        font-size: 0.9rem;
+        max-width: 22ch;
+    }
+
+    .content {
+        padding: 1.25rem 1rem 3rem;
+    }
+
+    .voteRow {
+        grid-template-columns: 4rem 1fr 4.5rem;
+    }
+}

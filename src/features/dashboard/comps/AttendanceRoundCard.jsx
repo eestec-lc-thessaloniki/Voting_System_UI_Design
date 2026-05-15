@@ -1,18 +1,18 @@
-import { useEffect, useState } from "react";
-import { checkIn, checkOut, getByRound } from "../../../services/AttendanceApi.js";
+import { useEffect, useState } from 'react'
+import { getRecordsByRound, checkIn, checkOut } from '../../../services/AttendanceApi.js'
 import styles from './AttendanceRoundCard.module.css'
 
-export default function AttendanceRoundCard({ round, users, meetingId, defaultExpanded, onDelete }) {
+export default function AttendanceRoundCard({ round, users, pollId, defaultExpanded, onDelete }) {
 
     const [expanded, setExpanded] = useState(defaultExpanded)
     const [records, setRecords] = useState([])
-    const [actionLoading, setActionLoading] = useState(null) // FIX 1: null not false
+    const [actionLoading, setActionLoading] = useState(null)
     const [loadingRecords, setLoadingRecords] = useState(false)
 
     const fetchRecords = async () => {
-        setLoadingRecords(true) // FIX 2: use loadingRecords for fetch, not actionLoading
+        setLoadingRecords(true)
         try {
-            const data = await getByRound(round.id)
+            const data = await getRecordsByRound(round.id)
             setRecords(data)
         } catch (err) {
             console.error('Failed to fetch round records', err)
@@ -25,25 +25,24 @@ export default function AttendanceRoundCard({ round, users, meetingId, defaultEx
         if (expanded) fetchRecords()
     }, [expanded])
 
+    // Match record by userId — backend returns user object on each record
     const getStatus = (userId) => {
         const found = records.find(r => r.user?.id === userId)
         if (!found) return 'absent'
-        if (found.check_out_time) return 'out'
+        if (found.checkOutTime) return 'out'   // camelCase — Spring serializes this way
         return 'in'
     }
 
     const handleCheckIn = async (userId) => {
-        console.log('round:', round)
-        console.log('roundId being sent:', round.id)
         setActionLoading(userId + '_in')
         try {
-            await checkIn({ meetingId, userId, roundId: round.id })
+            await checkIn({ roundId: round.id, userId })
             await fetchRecords()
         } catch (err) {
-            if (err?.response?.status === 409) { // FIX 3: number not string
+            if (err?.response?.status === 409) {
                 alert('User is already checked in for this round.')
             } else {
-                console.error('Check-in failed: ', err)
+                console.error('Check-in failed:', err)
             }
         } finally {
             setActionLoading(null)
@@ -53,16 +52,16 @@ export default function AttendanceRoundCard({ round, users, meetingId, defaultEx
     const handleCheckOut = async (userId) => {
         setActionLoading(userId + '_out')
         try {
-            await checkOut({ meetingId, userId, roundId: round.id })
+            await checkOut({ roundId: round.id, userId })
             await fetchRecords()
         } catch (err) {
-            console.error('Check-out failed: ', err)
+            console.error('Check-out failed:', err)
         } finally {
             setActionLoading(null)
         }
     }
 
-    const checkedInCount = records.filter(r => !r.check_out_time).length
+    const checkedInCount = records.filter(r => !r.checkOutTime).length
 
     return (
         <div className={styles.card}>
@@ -105,7 +104,6 @@ export default function AttendanceRoundCard({ round, users, meetingId, defaultEx
                                 return (
                                     <tr key={user.id} className={status === 'absent' ? styles.rowAbsent : ''}>
                                         <td>
-                                            {/* FIX 4: wrapper div inside td, not flex on td */}
                                             <div className={styles.nameCell}>
                                                     <span className={styles.name}>
                                                         {user.firstName && user.lastName
@@ -117,14 +115,16 @@ export default function AttendanceRoundCard({ round, users, meetingId, defaultEx
                                         </td>
                                         <td>
                                                 <span className={`${styles.status} ${styles[`status_${status}`]}`}>
-                                                    {status === 'in' ? 'Present' : status === 'out' ? 'Checked Out' : 'Absent'}
+                                                    {status === 'in' ? 'Present'
+                                                        : status === 'out' ? 'Checked Out'
+                                                            : 'Absent'}
                                                 </span>
                                         </td>
                                         <td>
                                             <div className={styles.actions}>
                                                 <button
                                                     className={styles.btnIn}
-                                                    disabled={status === 'in' || status === 'out' || actionLoading !== null}
+                                                    disabled={status !== 'absent' || actionLoading !== null}
                                                     onClick={() => handleCheckIn(user.id)}
                                                 >
                                                     {actionLoading === user.id + '_in' ? '...' : 'Check In'}

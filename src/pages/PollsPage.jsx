@@ -1,17 +1,27 @@
 import { useState } from 'react'
 import { usePolls, useCreatePoll } from '../hooks/usePolls'
+import { useHasVoted, useCastVote, useVoteCount, useElectionResults } from '../hooks/useVoting'
+import {
+    useCreateAttendanceCheck,
+    useCloseAttendanceCheck,
+    useOpenRound,
+    useCloseRoundAndOpenVoting,
+    useCheckIn,
+    useCheckOut,
+    useAttendanceSummary,
+} from '../hooks/useAttendance'
 import useAuthStore from '../services/AuthStore'
-import { useHasVoted, useVoteCount, useCastVote, useElectionResults } from '../hooks/useVoting'
-import { useCheckIn } from '../hooks/useAttendance'
 import { useDismissed } from '../hooks/useDismissed'
 import styles from './PollsPage.module.css'
 
 const MAJORITY_TYPES = ['ABSOLUTE', 'TWO_THIRDS', 'RELATIVE']
 
 const STATUS_STYLES = {
-    REQUIRES_NEXT_ROUND: { label: 'Next Round',  className: 'badgeGold' },
-    COMPLETED:           { label: 'Completed',   className: 'badgeGreen' },
-    ACTIVE:              { label: 'Active',       className: 'badgeBlue' },
+    PENDING:                   { label: 'Pending',        className: 'badgeMuted' },
+    VOTING_OPEN:               { label: 'Voting Open',    className: 'badgeGreen' },
+    REQUIRES_NEXT_ROUND:       { label: 'Next Round',     className: 'badgeGold' },
+    WINNER_DECLARED:           { label: 'Winner',         className: 'badgeBlue' },
+    TIE_REQUIRES_NEW_BOARD_VOTE: { label: 'Tie — Board Vote', className: 'badgeGold' },
 }
 
 const ROUND_LABELS = {
@@ -22,27 +32,134 @@ const ROUND_LABELS = {
 
 const VOTE_OPTIONS = ['FOR', 'AGAINST', 'BLANK']
 
+// --- Admin Controls Panel ---
+// Drives the full attendance → voting lifecycle for a poll
+function AdminControlsPanel({ poll }) {
+    const [checkInUserId, setCheckInUserId] = useState('')
+    const { data: summary } = useAttendanceSummary(poll.id)
+
+    const { mutate: createCheck, isPending: creatingCheck } = useCreateAttendanceCheck()
+    const { mutate: closeCheck, isPending: closingCheck } = useCloseAttendanceCheck()
+    const { mutate: openRound, isPending: openingRound } = useOpenRound()
+    const { mutate: closeRound, isPending: closingRound } = useCloseRoundAndOpenVoting()
+    const { mutate: doCheckIn, isPending: checkingIn } = useCheckIn()
+    const { mutate: doCheckOut, isPending: checkingOut } = useCheckOut()
+
+    const checkId = poll.attendanceCheckId
+    // Most recent active round from summary — adjust field name to match your API response
+    const activeRound = summary?.activeRound
+    const activeRoundId = activeRound?.id
+
+    return (
+        <div className={styles.adminPanel}>
+            <p className={styles.adminPanelTitle}>⚙ Attendance Controls</p>
+
+            <div className={styles.adminRow}>
+                {/* Step 1 — create check if not started */}
+                {!checkId && (
+                    <button
+                        className={styles.adminBtn}
+                        onClick={() => createCheck(poll.id)}
+                        disabled={creatingCheck}
+                    >
+                        {creatingCheck ? 'Starting...' : 'Begin Attendance'}
+                    </button>
+                )}
+
+                {/* Step 2 — open a round */}
+                {checkId && !activeRoundId && poll.status === 'PENDING' && (
+                    <button
+                        className={styles.adminBtn}
+                        onClick={() => openRound(checkId)}
+                        disabled={openingRound}
+                    >
+                        {openingRound ? 'Opening...' : 'Open Round'}
+                    </button>
+                )}
+
+                {/* Step 3 — close round and open voting (the key trigger) */}
+                {activeRoundId && (
+                    <button
+                        className={`${styles.adminBtn} ${styles.adminBtnPrimary}`}
+                        onClick={() => closeRound(activeRoundId)}
+                        disabled={closingRound}
+                    >
+                        {closingRound ? 'Opening Voting...' : 'Close Round & Open Voting'}
+                    </button>
+                )}
+
+                {/* Close check permanently */}
+                {checkId && poll.status !== 'PENDING' && (
+                    <button
+                        className={`${styles.adminBtn} ${styles.adminBtnDanger}`}
+                        onClick={() => closeCheck(checkId)}
+                        disabled={closingCheck}
+                    >
+                        {closingCheck ? 'Closing...' : 'End Check'}
+                    </button>
+                )}
+            </div>
+
+            {/* Check-in a user by ID — only during an active round */}
+            {activeRoundId && (
+                <div className={styles.checkInRow}>
+                    <input
+                        className={styles.input}
+                        type="number"
+                        placeholder="User ID to check in"
+                        value={checkInUserId}
+                        onChange={e => setCheckInUserId(e.target.value)}
+                    />
+                    <button
+                        className={styles.adminBtn}
+                        onClick={() => doCheckIn({ roundId: activeRoundId, userId: Number(checkInUserId), pollId: poll.id })}
+                        disabled={!checkInUserId || checkingIn}
+                    >
+                        {checkingIn ? 'Checking in...' : 'Check In'}
+                    </button>
+                </div>
+            )}
+
+            {/* Attendance summary */}
+            {summary && (
+                <div className={styles.summaryRow}>
+                    <span className={styles.summaryItem}>
+                        ✅ Present: {summary.activeCount ?? 0}
+                    </span>
+                    <span className={styles.summaryItem}>
+                        📋 Total checked: {summary.totalCheckedIn ?? 0}
+                    </span>
+                    <span className={styles.summaryItem}>
+                        🗳 Electoral body: {poll.electoralBodyCount ?? '—'}
+                    </span>
+                </div>
+            )}
+        </div>
+    )
+}
+
+// --- Poll Card ---
 function PollCard({ poll, userId, userRole, onDismiss }) {
     const { data: hasVoted } = useHasVoted(userId, poll.id)
     const { data: voteCount } = useVoteCount(poll.id)
     const { data: results } = useElectionResults(poll.id)
     const { mutate: castVote, isPending: voting } = useCastVote()
-    const { mutate: checkIn, isPending: checkingIn } = useCheckIn()
 
     const [expanded, setExpanded] = useState(false)
     const [selectedOption, setSelectedOption] = useState(null)
     const [selectedVoteType, setSelectedVoteType] = useState('FOR')
-    const [checkInUserId, setCheckInUserId] = useState('')
     const [_voted, setVoted] = useState(false)
 
     const alreadyVoted = hasVoted || _voted
     const isModeratorOrAdmin = userRole === 'MODERATOR' || userRole === 'ADMIN'
-    const status = STATUS_STYLES[poll.status] ?? { label: poll.status, className: 'badgeGold' }
+
+    // Gate: voting UI only shown when poll is explicitly VOTING_OPEN
+    const votingOpen = poll.status === 'VOTING_OPEN'
+
+    const status = STATUS_STYLES[poll.status] ?? { label: poll.status, className: 'badgeMuted' }
 
     const handleVote = () => {
-        console.log('handleVote fired', { selectedOption, alreadyVoted })
         if (!selectedOption || alreadyVoted) return
-        console.log('sending vote request')
         castVote({
             userId,
             pollId: poll.id,
@@ -56,25 +173,24 @@ function PollCard({ poll, userId, userRole, onDismiss }) {
         })
     }
 
-    const handleCheckIn = (targetUserId) => {
-        checkIn({
-            meeting: { id: poll.meeting?.id },
-            user: { id: Number(targetUserId) },
-            check_in_time: new Date().toISOString().slice(0, 19),
-            attendance_method: 'PHYSICAL',
-        })
-    }
-
     return (
         <div className={styles.card}>
             <div className={styles.cardTop}>
                 <div className={styles.badges}>
-                    <span className={`${styles.badge} ${styles[status.className]}`}>{status.label}</span>
-                    <span className={`${styles.badge} ${styles.badgeMuted}`}>{ROUND_LABELS[poll.currentRound] ?? poll.currentRound}</span>
-                    <span className={`${styles.badge} ${styles.badgeMuted}`}>{poll.majorityType}</span>
+                    <span className={`${styles.badge} ${styles[status.className]}`}>
+                        {status.label}
+                    </span>
+                    <span className={`${styles.badge} ${styles.badgeMuted}`}>
+                        {ROUND_LABELS[poll.currentRound] ?? poll.currentRound}
+                    </span>
+                    <span className={`${styles.badge} ${styles.badgeMuted}`}>
+                        {poll.majorityType}
+                    </span>
                 </div>
                 <div className={styles.cardActions}>
-                    <span className={styles.date}>{new Date(poll.createdAt).toLocaleDateString()}</span>
+                    <span className={styles.date}>
+                        {new Date(poll.createdAt).toLocaleDateString()}
+                    </span>
                     <button className={styles.dismissBtn} onClick={() => onDismiss(poll.id)}>✕</button>
                 </div>
             </div>
@@ -83,50 +199,38 @@ function PollCard({ poll, userId, userRole, onDismiss }) {
             <p className={styles.cardContent}>{poll.description}</p>
 
             <div className={styles.cardFooter}>
-                <span className={styles.meta}>📅 Meeting #{poll.meeting?.id} · {new Date(poll.meeting?.meetingDate).toLocaleDateString()}</span>
-                <span className={styles.meta}>🗳 {voteCount ?? 0} / {poll.electoralBodyCount} votes</span>
+                <span className={styles.meta}>
+                    📅 Meeting #{poll.meetingId}
+                </span>
+                <span className={styles.meta}>
+                    🗳 {voteCount ?? 0} / {poll.electoralBodyCount ?? '?'} votes
+                </span>
             </div>
 
-            {isModeratorOrAdmin && poll.isActive && (
-                <div className={styles.checkInPanel}>
-                    <p className={styles.votingLabel}>Check In User</p>
-                    <div className={styles.checkInRow}>
-                        <input
-                            className={styles.input}
-                            type="number"
-                            placeholder="User ID"
-                            value={checkInUserId}
-                            onChange={e => setCheckInUserId(e.target.value)}
-                        />
-                        <button
-                            className={styles.checkInBtn}
-                            onClick={() => handleCheckIn(checkInUserId)}
-                            disabled={!checkInUserId || checkingIn}
-                        >
-                            {checkingIn ? 'Checking in...' : 'Check In'}
-                        </button>
-                    </div>
-                    <button
-                        className={styles.checkInBtn}
-                        onClick={() => handleCheckIn(userId)}
-                        disabled={checkingIn}
-                    >
-                        Check In Myself
-                    </button>
-                </div>
+            {/* Admin controls — full lifecycle panel */}
+            {isModeratorOrAdmin && (
+                <AdminControlsPanel poll={poll} />
             )}
 
-            {poll.isActive && (
+            {/* Vote button — only when VOTING_OPEN */}
+            {votingOpen && !alreadyVoted && (
                 <button
                     className={styles.expandBtn}
                     onClick={() => setExpanded(v => !v)}
-                    disabled={alreadyVoted}
                 >
-                    {alreadyVoted ? 'Already Voted ✓' : expanded ? 'Hide Voting' : 'Cast Vote'}
+                    {expanded ? 'Hide Voting' : 'Cast Vote'}
                 </button>
             )}
 
-            {expanded && !alreadyVoted && poll.options?.length > 0 && (
+            {/* Not eligible message — poll active but not VOTING_OPEN */}
+            {!votingOpen && poll.isActive && !isModeratorOrAdmin && (
+                <p className={styles.notEligible}>
+                    ⏳ Voting not open yet — attendance in progress.
+                </p>
+            )}
+
+            {/* Voting panel */}
+            {expanded && votingOpen && !alreadyVoted && poll.options?.length > 0 && (
                 <div className={styles.votingPanel}>
                     <div className={styles.votingSection}>
                         <p className={styles.votingLabel}>Select Candidate</p>
@@ -168,7 +272,7 @@ function PollCard({ poll, userId, userRole, onDismiss }) {
                 </div>
             )}
 
-            {expanded && !alreadyVoted && poll.options?.length === 0 && (
+            {expanded && votingOpen && !alreadyVoted && poll.options?.length === 0 && (
                 <div className={styles.votingPanel}>
                     <p className={styles.alreadyVoted}>No candidates available for this poll.</p>
                 </div>
@@ -197,6 +301,7 @@ function PollCard({ poll, userId, userRole, onDismiss }) {
     )
 }
 
+// --- Polls Page ---
 export default function PollsPage() {
     const { user } = useAuthStore()
     const { data: polls, isLoading } = usePolls()
@@ -209,7 +314,6 @@ export default function PollsPage() {
         description: '',
         meetingId: '',
         majorityType: 'ABSOLUTE',
-        electoralBodyCount: '',
         candidateNames: [''],
     })
 
@@ -221,7 +325,8 @@ export default function PollsPage() {
         setForm({ ...form, candidateNames: updated })
     }
 
-    const addCandidate = () => setForm({ ...form, candidateNames: [...form.candidateNames, ''] })
+    const addCandidate = () =>
+        setForm({ ...form, candidateNames: [...form.candidateNames, ''] })
 
     const removeCandidate = (index) => {
         const updated = form.candidateNames.filter((_, i) => i !== index)
@@ -235,7 +340,7 @@ export default function PollsPage() {
             pollData: {
                 ...form,
                 meetingId: Number(form.meetingId),
-                electoralBodyCount: Number(form.electoralBodyCount),
+                // electoralBodyCount removed — auto-calculated when round closes
                 candidateNames: form.candidateNames.filter(n => n.trim() !== ''),
             }
         }, {
@@ -245,7 +350,6 @@ export default function PollsPage() {
                     description: '',
                     meetingId: '',
                     majorityType: 'ABSOLUTE',
-                    electoralBodyCount: '',
                     candidateNames: [''],
                 })
                 setShowForm(false)
@@ -306,30 +410,16 @@ export default function PollsPage() {
                             />
                         </div>
 
-                        <div className={styles.row}>
-                            <div className={styles.field}>
-                                <label className={styles.label}>Majority Type</label>
-                                <select
-                                    className={styles.select}
-                                    name="majorityType"
-                                    value={form.majorityType}
-                                    onChange={handleChange}
-                                >
-                                    {MAJORITY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                                </select>
-                            </div>
-                            <div className={styles.field}>
-                                <label className={styles.label}>Electoral Body Count</label>
-                                <input
-                                    className={styles.input}
-                                    name="electoralBodyCount"
-                                    type="number"
-                                    placeholder="e.g. 50"
-                                    value={form.electoralBodyCount}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
+                        <div className={styles.field}>
+                            <label className={styles.label}>Majority Type</label>
+                            <select
+                                className={styles.select}
+                                name="majorityType"
+                                value={form.majorityType}
+                                onChange={handleChange}
+                            >
+                                {MAJORITY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
                         </div>
 
                         <div className={styles.field}>

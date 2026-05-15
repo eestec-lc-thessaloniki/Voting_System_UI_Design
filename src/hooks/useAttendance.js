@@ -1,52 +1,90 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { checkIn, checkOut, getSummary } from '../services/AttendanceApi'
+import {
+    createAttendanceCheck,
+    closeAttendanceCheck,
+    openRound,
+    closeRoundAndOpenVoting,
+    checkIn,
+    checkOut,
+    getAttendanceSummary,
+} from '../services/AttendanceApi'
 
-export function useCheckIn() {
+// --- Attendance Check ---
+
+export function useCreateAttendanceCheck() {
     const queryClient = useQueryClient()
     return useMutation({
-        mutationFn: ({ meetingId, userId }) => checkIn(meetingId, userId),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['attendance'] })
+        mutationFn: (pollId) => createAttendanceCheck(pollId),
+        onSuccess: (_, pollId) => {
+            queryClient.invalidateQueries({ queryKey: ['polls'] })
+            queryClient.invalidateQueries({ queryKey: ['attendanceSummary', pollId] })
         },
     })
 }
 
-export function useAttendance(meetingId) {
-    return useQuery({
-        queryKey: ['attendance', meetingId],
-        queryFn: () => getSummary(meetingId),
-        enabled: !!meetingId,
+export function useCloseAttendanceCheck() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: (checkId) => closeAttendanceCheck(checkId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['polls'] })
+        },
+    })
+}
+
+// --- Rounds ---
+
+export function useOpenRound() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: (checkId) => openRound(checkId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['polls'] })
+        },
+    })
+}
+
+export function useCloseRoundAndOpenVoting() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        // roundId comes in as the argument
+        mutationFn: (roundId) => closeRoundAndOpenVoting(roundId),
+        onSuccess: () => {
+            // Poll status flips to VOTING_OPEN — refetch polls and attendance
+            queryClient.invalidateQueries({ queryKey: ['polls'] })
+        },
+    })
+}
+
+// --- Per-user check-in / check-out ---
+
+export function useCheckIn() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: ({ roundId, userId }) => checkIn({ roundId, userId }),
+        onSuccess: (_, { pollId }) => {
+            queryClient.invalidateQueries({ queryKey: ['attendanceSummary', pollId] })
+        },
     })
 }
 
 export function useCheckOut() {
     const queryClient = useQueryClient()
     return useMutation({
-        mutationFn: ({ meetingId, userId }) => checkOut({ meetingId, userId }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['attendance'] })
+        mutationFn: ({ recordId }) => checkOut({ recordId }),
+        onSuccess: (_, { pollId }) => {
+            queryClient.invalidateQueries({ queryKey: ['attendanceSummary', pollId] })
         },
     })
 }
 
+// --- Summary (member status breakdown across all rounds for a poll) ---
 
-// import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-// import { checkIn, getAttendanceByMeeting } from './AttendanceApi'
-//
-// export function useCheckIn() {
-//     const queryClient = useQueryClient()
-//     return useMutation({
-//         mutationFn: checkIn,
-//         onSuccess: () => {
-//             queryClient.invalidateQueries({ queryKey: ['attendance'] })
-//         },
-//     })
-// }
-//
-// export function useAttendance(meetingId, moderatorId) {
-//     return useQuery({
-//         queryKey: ['attendance', meetingId],
-//         queryFn: () => getAttendanceByMeeting(meetingId, moderatorId),
-//         enabled: !!meetingId && !!moderatorId,
-//     })
-// }
+export function useAttendanceSummary(pollId) {
+    return useQuery({
+        queryKey: ['attendanceSummary', pollId],
+        queryFn: () => getAttendanceSummary(pollId),
+        enabled: !!pollId,
+        staleTime: 30 * 1000, // 30s — this changes frequently during a meeting
+    })
+}

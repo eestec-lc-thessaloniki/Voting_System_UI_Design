@@ -15,6 +15,7 @@ import useAuthStore from "../services/AuthStore.js";
 import ReportsPage from "../pages/ReportsPage.jsx";
 import AttendancePage from "../pages/AttendancePage.jsx";
 import SettingsPage  from "../pages/SettingsPage.jsx";
+import MeetingsPage from "../pages/MeetingsPage.jsx";
 
 // Placeholder για pages που δεν έχουν φτιαχτεί ακόμα
 const Soon = ({ name }) => (
@@ -51,6 +52,7 @@ export default function AppRouter() {
                                     <Route path={ROUTES.REPORTS} element={<ReportsPage />} />
                                     <Route path={ROUTES.SETTINGS} element={<SettingsPage/>} />
                                     <Route path={ROUTES.ATTENDANCE} element={<AttendancePage />} />
+                                    <Route path="/meetings" element={<MeetingsPage />} />
                                 </Routes>
                             </MainPanel>
                         </Layout>

@@ -1,43 +1,62 @@
 import client from './axiosClient'
 
-export const checkIn = async ({ meetingId, userId, roundId }) => {
-    const response = await client.post('/attendance_check/check-in', {
-        meetingId,
-        userId,
-        roundId: roundId ?? null,
-        method: 'MANUAL',
+// --- Attendance Check (parent, one per poll) ---
+
+export const createAttendanceCheck = async (pollId) => {
+    const response = await client.post(`/attendance_check/poll/${pollId}`)
+    return response.data
+}
+
+export const closeAttendanceCheck = async (checkId) => {
+    const response = await client.post(`/attendance_check/${checkId}/close`)
+    return response.data
+}
+
+// --- Attendance Rounds ---
+
+export const openRound = async (checkId) => {
+    const response = await client.post(`/attendance_rounds/check/${checkId}`)
+    return response.data
+}
+
+// Alias — legacy imports
+export const createRound = openRound
+
+export const closeRoundAndOpenVoting = async (roundId) => {
+    const response = await client.post(`/attendance_rounds/${roundId}/close-and-open-voting`)
+    return response.data
+}
+
+export const deleteRound = async (roundId, adminId) => {
+    await client.delete(`/attendance_rounds/${roundId}`, {
+        params: { adminId }
     })
+}
+
+// --- User Attendance Records ---
+
+export const checkIn = async ({ roundId, userId }) => {
+    const response = await client.post(`/attendance_records/check-in`, { roundId, userId })
     return response.data
 }
 
-export const checkOut = async ({ meetingId, userId }) => {
-    const response = await client.post('/attendance_check/check-out', null, {
-        params: { meetingId, userId },
-    })
+// checkOut uses roundId + userId (not recordId)
+export const checkOut = async ({ roundId, userId }) => {
+    const response = await client.post(`/attendance_records/check-out`, { roundId, userId })
     return response.data
 }
 
-export const getSummary = async (meetingId) => {
-    const response = await client.get(`/attendance_check/by-meeting/${meetingId}`)
+export const getAttendanceSummary = async (pollId) => {
+    const response = await client.get(`/attendance_records/summary/poll/${pollId}`)
     return response.data
 }
 
-export const getRound = async (meetingId) => {
-    const response = await client.get(`/attendance_rounds/meeting/${meetingId}`)
+export const getRecordsByRound = async (roundId) => {
+    const response = await client.get(`/attendance_records/round/${roundId}`)
     return response.data
 }
 
-export const createRound = async (meetingId) => {
-    const response = await client.post(`/attendance_rounds?meetingId=${meetingId}`)
-    return response.data
-}
-
-export const deleteRound = async (roundId) => {
-    const response = await client.delete(`/attendance_rounds/${roundId}`)
-    return response.data
-}
-
-export const getByRound = async (roundId) => {
-    const response = await client.get(`/attendance_check/by-round/${roundId}`)
+export const getRoundsByCheckId = async (checkId) => {
+    const response = await client.get(`/attendance_rounds/check/${checkId}`)
     return response.data
 }

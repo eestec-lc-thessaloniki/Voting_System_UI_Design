@@ -8,4 +8,5 @@ export const ROUTES = {
     ATTENDANCE: '/attendance',
     SETTINGS: '/settings',
     LOGIN: '/login',
+    MEETINGS: '/meetings'
 }

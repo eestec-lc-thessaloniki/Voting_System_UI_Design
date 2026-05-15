@@ -9,3 +9,8 @@ export const getAllPolls = async () => {
     const response = await client.get('/polls')
     return response.data
 }
+
+export const getPollsByMeeting = async (meetingId) => {
+    const response = await client.get(`/polls/meeting/${meetingId}`)
+    return response.data
+}
