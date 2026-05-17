@@ -35,6 +35,7 @@ const VOTE_OPTIONS = ['FOR', 'AGAINST', 'BLANK']
 // --- Admin Controls Panel ---
 function AdminControlsPanel({ poll }) {
     const [checkInUserId, setCheckInUserId] = useState('')
+    const { user } = useAuthStore()
     const { data: summary } = useAttendanceSummary(poll.id)
 
     const { mutate: createCheck, isPending: creatingCheck } = useCreateAttendanceCheck()
@@ -65,7 +66,7 @@ function AdminControlsPanel({ poll }) {
                 {checkId && !activeRoundId && poll.status === 'PENDING' && (
                     <button
                         className={styles.adminBtn}
-                        onClick={() => openRound(checkId)}
+                        onClick={() => openRound({ checkId, moderatorId: user.userId })}
                         disabled={openingRound}
                     >
                         {openingRound ? 'Opening...' : 'Open Round'}
@@ -75,7 +76,7 @@ function AdminControlsPanel({ poll }) {
                 {activeRoundId && (
                     <button
                         className={`${styles.adminBtn} ${styles.adminBtnPrimary}`}
-                        onClick={() => closeRound(activeRoundId)}
+                        onClick={() => closeRound({ roundId: activeRoundId, moderatorId: user.userId })}
                         disabled={closingRound}
                     >
                         {closingRound ? 'Opening Voting...' : 'Close Round & Open Voting'}

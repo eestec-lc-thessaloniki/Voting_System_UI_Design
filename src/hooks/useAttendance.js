@@ -37,7 +37,7 @@ export function useCloseAttendanceCheck() {
 export function useOpenRound() {
     const queryClient = useQueryClient()
     return useMutation({
-        mutationFn: (checkId) => openRound(checkId),
+        mutationFn: ({ checkId, moderatorId }) => openRound(checkId, moderatorId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['polls'] })
         },
@@ -47,10 +47,8 @@ export function useOpenRound() {
 export function useCloseRoundAndOpenVoting() {
     const queryClient = useQueryClient()
     return useMutation({
-        // roundId comes in as the argument
-        mutationFn: (roundId) => closeRoundAndOpenVoting(roundId),
+        mutationFn: ({ roundId, moderatorId }) => closeRoundAndOpenVoting(roundId, moderatorId),
         onSuccess: () => {
-            // Poll status flips to VOTING_OPEN — refetch polls and attendance
             queryClient.invalidateQueries({ queryKey: ['polls'] })
         },
     })

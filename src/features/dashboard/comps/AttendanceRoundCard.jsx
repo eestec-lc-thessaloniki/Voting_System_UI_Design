@@ -3,13 +3,14 @@ import { getRecordsByRound, checkIn, checkOut } from '../../../services/Attendan
 import useAuthStore from '../../../services/authStore'
 import styles from './AttendanceRoundCard.module.css'
 
-export default function AttendanceRoundCard({ round, users, defaultExpanded, onDelete }) {
+export default function AttendanceRoundCard({ round, users, defaultExpanded, onDelete, onClose, closingRound }) {
     const { user } = useAuthStore()
 
-    const [expanded, setExpanded] = useState(defaultExpanded)
-    const [records, setRecords] = useState([])
+    const [expanded, setExpanded]         = useState(defaultExpanded)
+    const [records, setRecords]           = useState([])
     const [actionLoading, setActionLoading] = useState(null)
     const [loadingRecords, setLoadingRecords] = useState(false)
+    const [search, setSearch]             = useState('')
 
     const fetchRecords = async () => {
         setLoadingRecords(true)
@@ -27,11 +28,10 @@ export default function AttendanceRoundCard({ round, users, defaultExpanded, onD
         if (expanded) fetchRecords()
     }, [expanded])
 
-    // Match record by userId — backend returns user object on each record
     const getStatus = (userId) => {
         const found = records.find(r => r.user?.id === userId)
         if (!found) return 'absent'
-        if (found.checkOutTime) return 'out'   // camelCase — Spring serializes this way
+        if (found.checkOutTime) return 'out'
         return 'in'
     }
 
@@ -65,6 +65,16 @@ export default function AttendanceRoundCard({ round, users, defaultExpanded, onD
 
     const checkedInCount = records.filter(r => !r.checkOutTime).length
 
+    const filteredMembers = search.trim()
+        ? users.filter(m => {
+            const q = search.toLowerCase()
+            return (
+                m.username?.toLowerCase().includes(q) ||
+                `${m.firstName ?? ''} ${m.lastName ?? ''}`.toLowerCase().includes(q)
+            )
+        })
+        : users
+
     return (
         <div className={styles.card}>
             <div className={styles.header}>
@@ -78,6 +88,16 @@ export default function AttendanceRoundCard({ round, users, defaultExpanded, onD
                     </span>
                     <span className={styles.chevron}>{expanded ? '▲' : '▼'}</span>
                 </button>
+                {onClose && (
+                    <button
+                        className={styles.btnClose}
+                        onClick={onClose}
+                        disabled={closingRound}
+                        title="Close round"
+                    >
+                        {closingRound ? '…' : 'Close Round'}
+                    </button>
+                )}
                 {onDelete && (
                     <button
                         className={styles.btnDelete}
@@ -91,62 +111,79 @@ export default function AttendanceRoundCard({ round, users, defaultExpanded, onD
 
             {expanded && (
                 <div className={styles.body}>
+                    <input
+                        className={styles.searchBar}
+                        type="text"
+                        placeholder="Search by name or username…"
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                    />
+
                     {loadingRecords ? (
-                        <p className={styles.state}>Loading...</p>
+                        <p className={styles.state}>Loading…</p>
+                    ) : filteredMembers.length === 0 ? (
+                        <p className={styles.state}>No members match.</p>
                     ) : (
-                        <table className={styles.table}>
-                            <thead>
-                            <tr>
-                                <th>Member</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {users.map(user => {
-                                const status = getStatus(user.id)
-                                return (
-                                    <tr key={user.id} className={status === 'absent' ? styles.rowAbsent : ''}>
-                                        <td>
-                                            <div className={styles.nameCell}>
-                                                    <span className={styles.name}>
-                                                        {user.firstName && user.lastName
-                                                            ? `${user.firstName} ${user.lastName}`
-                                                            : user.username}
-                                                    </span>
-                                                <span className={styles.username}>@{user.username}</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                                <span className={`${styles.status} ${styles[`status_${status}`]}`}>
-                                                    {status === 'in' ? 'Present'
-                                                        : status === 'out' ? 'Checked Out'
-                                                            : 'Absent'}
-                                                </span>
-                                        </td>
-                                        <td>
-                                            <div className={styles.actions}>
-                                                <button
-                                                    className={styles.btnIn}
-                                                    disabled={status !== 'absent' || actionLoading !== null}
-                                                    onClick={() => handleCheckIn(user.id)}
-                                                >
-                                                    {actionLoading === user.id + '_in' ? '...' : 'Check In'}
-                                                </button>
-                                                <button
-                                                    className={styles.btnOut}
-                                                    disabled={status !== 'in' || actionLoading !== null}
-                                                    onClick={() => handleCheckOut(user.id)}
-                                                >
-                                                    {actionLoading === user.id + '_out' ? '...' : 'Check Out'}
-                                                </button>
-                                            </div>
-                                        </td>
+                        <div className={styles.tableWrapper}>
+                            <table className={styles.table}>
+                                <thead>
+                                    <tr>
+                                        <th>Member</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
                                     </tr>
-                                )
-                            })}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {filteredMembers.map(member => {
+                                        const status = getStatus(member.id)
+                                        const loadingIn  = actionLoading === member.id + '_in'
+                                        const loadingOut = actionLoading === member.id + '_out'
+                                        return (
+                                            <tr
+                                                key={member.id}
+                                                className={status === 'absent' ? styles.rowAbsent : ''}
+                                            >
+                                                <td>
+                                                    <div className={styles.nameCell}>
+                                                        <span className={styles.name}>
+                                                            {member.firstName && member.lastName
+                                                                ? `${member.firstName} ${member.lastName}`
+                                                                : member.username}
+                                                        </span>
+                                                        <span className={styles.username}>@{member.username}</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span className={`${styles.status} ${styles[`status_${status}`]}`}>
+                                                        {status === 'in'     ? 'Present'
+                                                         : status === 'out'  ? 'Checked Out'
+                                                         : 'Absent'}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div className={styles.actions}>
+                                                        <button
+                                                            className={styles.btnIn}
+                                                            disabled={status !== 'absent' || actionLoading !== null}
+                                                            onClick={() => handleCheckIn(member.id)}
+                                                        >
+                                                            {loadingIn ? 'Checking in…' : 'Check In'}
+                                                        </button>
+                                                        <button
+                                                            className={styles.btnOut}
+                                                            disabled={status !== 'in' || actionLoading !== null}
+                                                            onClick={() => handleCheckOut(member.id)}
+                                                        >
+                                                            {loadingOut ? 'Checking out…' : 'Check Out'}
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
                     )}
                 </div>
             )}

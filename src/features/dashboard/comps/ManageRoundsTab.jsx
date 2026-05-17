@@ -5,6 +5,7 @@ import {
     getChecksByMeeting,
     createAttendanceCheckForMeeting,
     openRound,
+    closeRound,
     getRoundsByCheckId,
 } from '../../../services/AttendanceApi'
 import AttendanceRoundCard from './AttendanceRoundCard'
@@ -25,6 +26,7 @@ export default function ManageRoundsTab() {
 
     const [creating, setCreating] = useState(false)
     const [openingRound, setOpeningRound] = useState(false)
+    const [closingRound, setClosingRound] = useState(null)
     const [error, setError] = useState(null)
 
     useEffect(() => {
@@ -89,7 +91,7 @@ export default function ManageRoundsTab() {
         setOpeningRound(true)
         setError(null)
         try {
-            const newRound = await openRound(check.id)
+            const newRound = await openRound(check.id, user.userId)
             setRounds(prev => [...prev, newRound])
         } catch (err) {
             setError(err?.response?.data || 'Failed to open round.')
@@ -98,7 +100,18 @@ export default function ManageRoundsTab() {
         }
     }
 
-    const hasActiveRound = rounds.some(r => r.isActive)
+    const handleCloseRound = async (roundId) => {
+        setClosingRound(roundId)
+        setError(null)
+        try {
+            const updated = await closeRound(roundId, user.userId)
+            setRounds(prev => prev.map(r => r.id === roundId ? updated : r))
+        } catch (err) {
+            setError(err?.response?.data || 'Failed to close round.')
+        } finally {
+            setClosingRound(null)
+        }
+    }
 
     return (
         <div className={styles.wrapper}>
@@ -150,7 +163,7 @@ export default function ManageRoundsTab() {
                                     {creating ? 'Creating...' : 'Start Attendance'}
                                 </button>
                             )}
-                            {check && check.isOpen && !hasActiveRound && (
+                            {check && check.isOpen && (
                                 <button
                                     className={`${styles.btn} ${styles.btnPrimary}`}
                                     onClick={handleOpenRound}
@@ -158,9 +171,6 @@ export default function ManageRoundsTab() {
                                 >
                                     {openingRound ? 'Opening...' : '＋ Open Round'}
                                 </button>
-                            )}
-                            {hasActiveRound && (
-                                <span className={styles.badgeOpen}>Round active</span>
                             )}
                             {check && !check.isOpen && (
                                 <span className={styles.badgeClosed}>Check closed</span>
@@ -178,6 +188,10 @@ export default function ManageRoundsTab() {
                                     users={users}
                                     defaultExpanded={index === 0}
                                     onDelete={null}
+                                    onClose={round.isActive
+                                        ? () => handleCloseRound(round.id)
+                                        : null}
+                                    closingRound={closingRound === round.id}
                                 />
                             ))}
                         </div>

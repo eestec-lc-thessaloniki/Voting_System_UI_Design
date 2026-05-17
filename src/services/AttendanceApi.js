@@ -14,16 +14,27 @@ export const closeAttendanceCheck = async (checkId) => {
 
 // --- Attendance Rounds ---
 
-export const openRound = async (checkId) => {
-    const response = await client.post(`/attendance_rounds/check/${checkId}`)
+export const openRound = async (checkId, moderatorId) => {
+    const response = await client.post(`/attendance_rounds/check/${checkId}`, null, {
+        params: { moderatorId }
+    })
     return response.data
 }
 
 // Alias — legacy imports
 export const createRound = openRound
 
-export const closeRoundAndOpenVoting = async (roundId) => {
-    const response = await client.post(`/attendance_rounds/${roundId}/close-and-open-voting`)
+export const closeRound = async (roundId, moderatorId) => {
+    const response = await client.post(`/attendance_rounds/${roundId}/close`, null, {
+        params: { moderatorId }
+    })
+    return response.data
+}
+
+export const closeRoundAndOpenVoting = async (roundId, moderatorId) => {
+    const response = await client.post(`/attendance_rounds/${roundId}/close-and-open-voting`, null, {
+        params: { moderatorId }
+    })
     return response.data
 }
 

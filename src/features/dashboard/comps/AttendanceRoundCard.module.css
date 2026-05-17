@@ -44,6 +44,21 @@
     color: var(--muted2);
 }
 
+.btnClose {
+    padding: var(--space-2) var(--space-3);
+    margin-right: var(--space-1);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    color: var(--accent);
+    border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-xs);
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.btnClose:hover:not(:disabled) { opacity: 0.75; }
+.btnClose:disabled { opacity: 0.4; cursor: not-allowed; }
+
 .btnDelete {
     padding: var(--space-2) var(--space-3);
     margin-right: var(--space-2);
@@ -56,10 +71,9 @@
     transition: opacity 0.15s;
 }
 
-.btnDelete:hover {
-    opacity: 0.75;
-}
+.btnDelete:hover { opacity: 0.75; }
 
+/* Body — scrollable */
 .body {
     padding: var(--space-4);
     background: var(--bg);
@@ -70,6 +84,35 @@
     font-size: var(--font-sm);
 }
 
+/* Search */
+.searchBar {
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    margin-bottom: var(--space-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    font-size: var(--font-sm);
+    box-sizing: border-box;
+    transition: border-color 0.15s;
+}
+
+.searchBar::placeholder { color: var(--muted2); }
+
+.searchBar:focus {
+    outline: none;
+    border-color: var(--green2);
+}
+
+/* Scrollable table container */
+.tableWrapper {
+    max-height: 480px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
 /* Table */
 .table {
     width: 100%;
@@ -77,7 +120,10 @@
     font-size: var(--font-sm);
 }
 
-.table th {
+.table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
     text-align: left;
     padding: var(--space-2) var(--space-3);
     font-size: var(--font-xs);
@@ -85,25 +131,26 @@
     color: var(--muted2);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    background: var(--surface);
     border-bottom: 1px solid var(--border);
 }
 
 .table td {
-    padding: var(--space-3) var(--space-3);
+    padding: var(--space-3);
     color: var(--text);
     border-bottom: 1px solid var(--border);
     vertical-align: middle;
 }
 
-.table tbody tr:last-child td {
-    border-bottom: none;
+.table tbody tr:last-child td { border-bottom: none; }
+
+.table tbody tr:hover {
+    background: color-mix(in srgb, var(--surface) 50%, transparent);
 }
 
-.rowAbsent {
-    opacity: 0.5;
-}
+.rowAbsent { opacity: 0.5; }
 
-/* Name cell — div inside td, not td itself */
+/* Name cell */
 .nameCell {
     display: flex;
     flex-direction: column;
@@ -153,13 +200,15 @@
 
 .btnIn,
 .btnOut {
-    padding: var(--space-1) var(--space-3);
+    padding: var(--space-2) var(--space-3);
     border-radius: var(--radius-sm);
     font-size: var(--font-xs);
     font-weight: 500;
     cursor: pointer;
     border: 1px solid transparent;
-    transition: opacity 0.15s;
+    transition: opacity 0.15s, transform 0.1s;
+    white-space: nowrap;
+    min-width: 90px;
 }
 
 .btnIn {
@@ -172,6 +221,23 @@
     background: color-mix(in srgb, var(--red) 12%, transparent);
     color: var(--red);
     border-color: color-mix(in srgb, var(--red) 25%, transparent);
+}
+
+.btnIn:not(:disabled):hover,
+.btnOut:not(:disabled):hover {
+    opacity: 0.8;
+}
+
+.btnIn:not(:disabled):active,
+.btnOut:not(:disabled):active {
+    transform: scale(0.95);
+    opacity: 0.9;
+}
+
+.btnIn:focus-visible,
+.btnOut:focus-visible {
+    outline: 2px solid var(--green2);
+    outline-offset: 2px;
 }
 
 .btnIn:disabled,

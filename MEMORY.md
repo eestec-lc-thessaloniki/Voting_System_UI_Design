@@ -125,7 +125,60 @@ Renamed 6 service/router files to consistent lowercase camelCase and updated all
 
 ---
 
+---
+
+### Fixes — 2026-05-17 (session 2)
+
+#### Backend — Voting gate fixed
+- `UserAttendanceRecordRepository.isUserActivelyCheckedInForMeeting` now uses `MAX(ar.id)` subquery to target only the latest `AttendanceRound` for the meeting. Previously checked any round → member absent from round 2 could still vote.
+
+#### Backend — `UserDetails.getName()` → `getUsername()`
+- `controller/UserAttendanceRecordController.java` — both check-in and check-out endpoints called `principal.getName()` which doesn't exist on `UserDetails`. Fixed to `principal.getUsername()`.
+
+#### Backend — `AttendanceCheckController` missing `IllegalStateException` catch
+- `POST /attendance_check/meeting/{meetingId}` didn't catch `IllegalStateException` (thrown when a check already exists), causing 500. Added `catch (IllegalStateException e) → 409`, matching the existing `/poll/{pollId}` handler.
+
+#### Backend — `buildSummary` NPE on null `member_status`
+- `UserAttendanceRecordService.buildSummary` called `.toUpperCase()` directly on `getMember_status()` with no null guard → NPE → 500 on all `/summary/poll/{id}` calls. Fixed with null-safe local variable.
+
+#### Backend — DB schema misalignment (attendance tables)
+- `attendance_check` still had old schema from migration 001 (`user_id NOT NULL`, `check_in_time NOT NULL`, `attendance_method NOT NULL`) — the `006-add-attendance-model-rewrite.sql` file was never registered in `db.changelog-master.xml`.
+- Added migration `009-attendance-schema-align.sql`: drops and recreates `attendance_check`, `attendance_round`, and `user_attendance_record` with the schema the entities expect. Applied manually via direct SQL + `DELETE FROM DATABASECHANGELOG`.
+
+#### Frontend — `openRound` / `closeRoundAndOpenVoting` missing `moderatorId`
+- `AttendanceApi.js`: both functions now accept and forward `moderatorId` as a query param.
+- `ManageRoundsTab.jsx`: `openRound(check.id, user.userId)`
+- `ActiveMeetingTab.jsx`: `openRound(poll.attendanceCheckId, user.userId)` and `closeRoundAndOpenVoting(roundId, user.userId)`
+- `useAttendance.js`: `useOpenRound` and `useCloseRoundAndOpenVoting` hooks now take `{ checkId/roundId, moderatorId }` objects.
+- `PollsPage.jsx` `AdminControlsPanel`: added `useAuthStore()` to get `user.userId`; updated both mutation call sites.
+
+---
+
+---
+
+### Fixes — 2026-05-17 (session 3)
+
+#### Backend — `AttendanceMethod` default mismatch → 400 on check-in
+- `UserAttendanceRecordController` defaulted `method` to `"IN_PERSON"` but the enum only has `REMOTE`, `MANUAL`, `PHYSICAL`. `valueOf("IN_PERSON")` threw `IllegalArgumentException` → 400.
+- Fixed default to `"PHYSICAL"`.
+
+#### Frontend — `AttendanceRoundCard` redesign
+- `AttendanceRoundCard.jsx` + `.module.css`
+- Added scrollable `.tableWrapper` with `max-height: 480px; overflow-y: auto` — previously the table grew unbounded with 30–60 members
+- Table `<thead>` is now `position: sticky; top: 0` so column headers stay visible while scrolling
+- Search bar added — filters members by name or username in real time
+- Button padding increased, `:active` scale transform added, `min-width: 90px` prevents width shift during loading
+- Loading labels changed from `...` to `"Checking in…"` / `"Checking out…"` for clarity
+- Fixed variable shadowing: `users.map(user =>` was shadowing `user` from `useAuthStore()` — renamed loop variable to `member`
+
+#### Frontend — `openRound` / `closeRoundAndOpenVoting` missing `moderatorId` (all call sites)
+- `ManageRoundsTab.jsx`, `ActiveMeetingTab.jsx`: direct calls now pass `user.userId`
+- `useAttendance.js`: `useOpenRound` and `useCloseRoundAndOpenVoting` hooks take `{ checkId/roundId, moderatorId }` objects
+- `PollsPage.jsx` `AdminControlsPanel`: added `useAuthStore()` + updated both mutation call sites
+
+---
+
 ## Known Constraints
 
-- **Voting gate (pending):** A member must be checked in at the **latest** attendance round for a meeting to be eligible to vote. The backend `validateVoteEligibility` currently queries the first record, not the latest round — this is unsafe for production and must be fixed before vote casting is enabled.
+- **Voting gate:** Fixed 2026-05-17 — see above.
 - **`PATCH` missing from CORS allowed methods** in `SecurityConfig` — may affect settings/profile update calls.
