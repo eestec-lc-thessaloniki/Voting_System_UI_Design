@@ -27,6 +27,15 @@ Renamed 6 service/router files to consistent lowercase camelCase and updated all
 - Individual round fetch failures are caught silently (empty array fallback) so one bad round doesn't break the whole load
 - Applies on initial mount and every subsequent `fetchData()` call (after poll creation, after closing a round)
 
+#### Bug 4 — Migrated `dashboardApi.js` from raw `fetch()` to axios client
+- `src/services/dashboardApi.js`
+- Removed `BASE` constant and `authHeaders()` helper
+- All 9 exported functions now use `client` from `./axiosClient` — auth is handled by the interceptor
+- `searchByDiscordTag` 404 check converted from `res.status === 404` to `err.response?.status === 404` in a `try/catch`
+- `changePassword` error message extracted from `err.response?.data` instead of `res.text()`
+- `updateUserRole` query params (`adminId`) moved to axios `params` option instead of being interpolated into the URL string
+- Deleted the ~180-line commented-out dead-code block at the bottom of the file
+
 ---
 
 **Imports fixed:**

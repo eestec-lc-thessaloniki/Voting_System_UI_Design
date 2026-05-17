@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { authApi } from './AuthApi'
+import { authApi } from './authApi'
 
 const useAuthStore = create((set) => ({
     user: authApi.getCurrentUser(),

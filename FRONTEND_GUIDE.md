@@ -231,9 +231,9 @@ The `✕` delete button renders regardless of whether `onDelete` is null. Non-pr
 
 ---
 
-### Bug 4 — `Dashboardapi.js` bypasses the axios client
+### ~~Bug 4 — `Dashboardapi.js` bypasses the axios client~~ ✓ Fixed 2026-05-17
 
-**File:** `src/services/Dashboardapi.js`
+**File:** `src/services/dashboardApi.js`
 
 All functions use raw `fetch()` and manually build `Authorization` headers. The axios client already handles this via interceptor. This creates two sources of truth for auth — if the token key in localStorage ever changes, `Dashboardapi.js` silently stops sending auth.
 
@@ -434,7 +434,7 @@ const isPrivileged = ['MODERATOR', 'ADMIN'].includes(user?.role)
 1. ~~**Bug 3** — Crash for non-privileged users on attendance page~~ ✓ Fixed
 2. ~~**Bug 2** — Import case mismatches~~ ✓ Fixed
 3. ~~**Bug 6** — Rounds not fetched on page load~~ ✓ Fixed
-4. **Bug 4** — `Dashboardapi.js` bypasses axios client (silent auth failure risk)
+4. ~~**Bug 4** — `Dashboardapi.js` bypasses axios client (silent auth failure risk)~~ ✓ Fixed
 5. **Bug 8** — Non-reactive `useAuth` hook (stale state after login/logout)
 6. **Bug 7** — Dashboard shows mock user and mock attendance instead of real data
 
