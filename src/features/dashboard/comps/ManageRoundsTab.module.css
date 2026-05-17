@@ -1,0 +1,190 @@
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.state {
+    color: var(--muted2);
+    font-size: var(--font-sm);
+}
+
+.stateError {
+    color: var(--red);
+    font-size: var(--font-sm);
+}
+
+/* Meeting selector */
+
+.selectRow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.label {
+    font-size: var(--font-sm);
+    font-weight: 500;
+    color: var(--muted2);
+    white-space: nowrap;
+}
+
+.select {
+    flex: 1;
+    padding: var(--space-2) var(--space-3);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: var(--font-sm);
+    cursor: pointer;
+}
+
+.select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Detail panel */
+
+.panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.checkRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+}
+
+.checkInfo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.checkLabel {
+    font-size: var(--font-sm);
+    font-weight: 500;
+    color: var(--text);
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+/* Badges */
+
+.badgeNone {
+    font-size: var(--font-xs);
+    color: var(--muted2);
+    padding: 2px var(--space-2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+}
+
+.badgeOpen {
+    font-size: var(--font-xs);
+    color: var(--green2);
+    padding: 2px var(--space-2);
+    background: color-mix(in srgb, var(--green2) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--green2) 30%, transparent);
+    border-radius: var(--radius-sm);
+}
+
+.badgeClosed {
+    font-size: var(--font-xs);
+    color: var(--muted2);
+    padding: 2px var(--space-2);
+    background: color-mix(in srgb, var(--muted2) 10%, transparent);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+}
+
+/* Buttons */
+
+.btn {
+    padding: var(--space-2) var(--space-4);
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    color: var(--accent);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.btn:hover:not(:disabled) {
+    opacity: 0.85;
+}
+
+.btnPrimary {
+    background: color-mix(in srgb, var(--green2) 15%, transparent);
+    color: var(--green2);
+    border-color: color-mix(in srgb, var(--green2) 30%, transparent);
+}
+
+/* Rounds list */
+
+.roundsList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.roundsTitle {
+    font-size: var(--font-xs);
+    color: var(--muted2);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-1);
+}
+
+.roundRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-2) var(--space-3);
+    background: color-mix(in srgb, var(--surface2) 50%, transparent);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.roundLabel {
+    font-size: var(--font-sm);
+    color: var(--text);
+    font-weight: 500;
+}
+
+.roundStatus {
+    font-size: var(--font-xs);
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-sm);
+}
+
+.roundActive {
+    color: var(--green2);
+    background: color-mix(in srgb, var(--green2) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--green2) 30%, transparent);
+}
+
+.roundClosed {
+    color: var(--muted2);
+    background: color-mix(in srgb, var(--muted2) 10%, transparent);
+    border: 1px solid var(--border2);
+}

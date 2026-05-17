@@ -11,6 +11,7 @@ import {
 import { createPoll } from '../../../services/PollsApi'
 import useAuthStore from '../../../services/authStore'
 import AttendanceRoundCard from './AttendanceRoundCard'
+import MemberCheckInCard from './MemberCheckInCard'
 import styles from './ActiveMeetingTab.module.css'
 
 const MAJORITY_TYPES = ['ABSOLUTE', 'TWO_THIRDS', 'RELATIVE']
@@ -336,17 +337,20 @@ export default function ActiveMeetingTab() {
                         )}
                         <div className={styles.rounds}>
                             {[...rounds].reverse().map((round, index) => (
-                                <AttendanceRoundCard
-                                    key={round.id}
-                                    round={round}
-                                    users={users}
-                                    pollId={poll.id}
-                                    defaultExpanded={index === 0}
-                                    onDelete={isPrivileged
-                                        ? () => handleDeleteRound(poll.id, round.id)
-                                        : null
-                                    }
-                                />
+                                isPrivileged ? (
+                                    <AttendanceRoundCard
+                                        key={round.id}
+                                        round={round}
+                                        users={users}
+                                        pollId={poll.id}
+                                        defaultExpanded={index === 0}
+                                        onDelete={() => handleDeleteRound(poll.id, round.id)}
+                                    />
+                                ) : (
+                                    round.isActive && (
+                                        <MemberCheckInCard key={round.id} round={round} />
+                                    )
+                                )
                             ))}
                         </div>
                     </div>

@@ -1,14 +1,19 @@
-import {useState} from "react";
+import { useState } from 'react'
 import ActiveMeetingTab from '../features/dashboard/comps/ActiveMeetingTab.jsx'
 import AttendanceHistoryTab from '../features/dashboard/comps/AttendanceHistoryTab.jsx'
+import ManageRoundsTab from '../features/dashboard/comps/ManageRoundsTab.jsx'
+import useAuthStore from '../services/authStore'
 import styles from './AttendancePage.module.css'
 
-const TABS = [
-    { id: 'active', label: 'Active Meeting' },
-    { id: 'history', label: 'History' },
-]
-
 export default function AttendancePage() {
+    const { user } = useAuthStore()
+    const isPrivileged = ['MODERATOR', 'ADMIN'].includes(user?.role)
+
+    const tabs = [
+        { id: 'active', label: 'Active Meeting' },
+        { id: 'history', label: 'History' },
+        ...(isPrivileged ? [{ id: 'manage', label: 'Manage Rounds' }] : []),
+    ]
 
     const [activeTab, setActiveTab] = useState('active')
 
@@ -20,7 +25,7 @@ export default function AttendancePage() {
             </div>
 
             <div className={styles.tabs}>
-                {TABS.map(tab => (
+                {tabs.map(tab => (
                     <button
                         key={tab.id}
                         className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ''}`}
@@ -34,6 +39,7 @@ export default function AttendancePage() {
             <div className={styles.content}>
                 {activeTab === 'active' && <ActiveMeetingTab />}
                 {activeTab === 'history' && <AttendanceHistoryTab />}
+                {activeTab === 'manage' && <ManageRoundsTab />}
             </div>
         </div>
     )

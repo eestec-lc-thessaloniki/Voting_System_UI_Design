@@ -305,7 +305,7 @@ setRoundsByPoll(roundsMap)
 
 ---
 
-### Bug 7 — Dashboard still uses mock user and mock weather
+### ~~Bug 7 — Dashboard still uses mock user and mock weather~~ ✓ Fixed 2026-05-17
 
 **File:** `src/pages/DashBoardPage.jsx:10,48`
 
@@ -328,7 +328,7 @@ const { user } = useAuthStore()
 
 ---
 
-### Bug 8 — `useAuth` hook creates a second, non-reactive auth state
+### ~~Bug 8 — `useAuth` hook creates a second, non-reactive auth state~~ ✓ Fixed 2026-05-17
 
 **File:** `src/hooks/useAuth.js`
 
@@ -435,8 +435,8 @@ const isPrivileged = ['MODERATOR', 'ADMIN'].includes(user?.role)
 2. ~~**Bug 2** — Import case mismatches~~ ✓ Fixed
 3. ~~**Bug 6** — Rounds not fetched on page load~~ ✓ Fixed
 4. ~~**Bug 4** — `Dashboardapi.js` bypasses axios client (silent auth failure risk)~~ ✓ Fixed
-5. **Bug 8** — Non-reactive `useAuth` hook (stale state after login/logout)
-6. **Bug 7** — Dashboard shows mock user and mock attendance instead of real data
+5. ~~**Bug 8** — Non-reactive `useAuth` hook (stale state after login/logout)~~ ✓ Fixed
+6. ~~**Bug 7** — Dashboard shows mock user and mock attendance instead of real data~~ ✓ Fixed
 
 ### Low priority — layout and cosmetic
 

@@ -1,0 +1,103 @@
+.card {
+    padding: var(--space-4);
+    background: color-mix(in srgb, var(--accent) 5%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+}
+
+.statusRow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.roundLabel {
+    font-size: var(--font-sm);
+    font-weight: 600;
+    color: var(--text);
+}
+
+.statusNeutral { font-size: var(--font-sm); color: var(--muted2); }
+
+.statusAbsent {
+    font-size: var(--font-sm);
+    color: var(--muted2);
+    padding: 2px var(--space-2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+}
+
+.statusIn {
+    font-size: var(--font-sm);
+    color: var(--green2);
+    padding: 2px var(--space-2);
+    background: color-mix(in srgb, var(--green2) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--green2) 30%, transparent);
+    border-radius: var(--radius-sm);
+}
+
+.statusOut {
+    font-size: var(--font-sm);
+    color: var(--muted2);
+    padding: 2px var(--space-2);
+    background: color-mix(in srgb, var(--muted2) 10%, transparent);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+}
+
+.actions {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.btnIn {
+    padding: var(--space-2) var(--space-5);
+    background: color-mix(in srgb, var(--green2) 15%, transparent);
+    color: var(--green2);
+    border: 1px solid color-mix(in srgb, var(--green2) 30%, transparent);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.btnIn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btnIn:hover:not(:disabled) { opacity: 0.8; }
+
+.btnOut {
+    padding: var(--space-2) var(--space-5);
+    background: color-mix(in srgb, var(--red) 12%, transparent);
+    color: var(--red);
+    border: 1px solid color-mix(in srgb, var(--red) 25%, transparent);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.btnOut:disabled { opacity: 0.4; cursor: not-allowed; }
+.btnOut:hover:not(:disabled) { opacity: 0.8; }
+
+.doneNote {
+    font-size: var(--font-sm);
+    color: var(--muted2);
+    font-style: italic;
+}
+
+.error {
+    font-size: var(--font-xs);
+    color: var(--red);
+    margin: 0;
+}

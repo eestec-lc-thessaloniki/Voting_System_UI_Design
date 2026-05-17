@@ -46,10 +46,10 @@ export default function ClosedPoll({ poll }) {
                 <span className={styles.statusClosed}>Closed · {poll.closedDate}</span>
             </div>
             <p className={styles.meta}>
-                <Icon name="users" size={11} /> {poll.voted} / {poll.total} voted · {Math.round(poll.voted/poll.total*100)}% turnout
+                <Icon name="users" size={11} /> {poll.voted} / {poll.total} voted · {Math.round(poll.voted / (poll.total || 1) * 100)}% turnout
             </p>
             <div className={styles.results}>
-                {poll.results.map(r => (
+                {(poll.results ?? []).map(r => (
                     <ResultBar key={r.label} result={r} animate={animate} />
                 ))}
             </div>

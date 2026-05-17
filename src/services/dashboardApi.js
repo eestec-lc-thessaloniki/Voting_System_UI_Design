@@ -159,3 +159,33 @@ export async function updateUserRole(targetUserId, newRole, adminId) {
     const { data } = await client.patch(endpoint, null, { params: { adminId } })
     return data
 }
+
+// ─── Attendance sessions (dashboard card) ────────────────────────────────────
+
+export async function fetchAttendanceSessions() {
+    const { data: meetings } = await client.get('/general_meetings')
+    // Take the last 5 meetings that have at least one poll with an attendance check
+    const withAttendance = meetings.filter(m => m.polls?.some(p => p.attendanceCheckId))
+    const recent = withAttendance.slice(-5)
+
+    return Promise.all(
+        recent.map(async (meeting) => {
+            const poll = meeting.polls.find(p => p.attendanceCheckId)
+            try {
+                const { data: summary } = await client.get(`/attendance_records/summary/poll/${poll.id}`)
+                const pct = summary.attendanceRate != null
+                    ? Math.round(summary.attendanceRate)
+                    : summary.totalEligible
+                        ? Math.round((summary.checkedIn / summary.totalEligible) * 100)
+                        : null
+                const color = pct == null ? '#C9993A'
+                    : pct >= 80 ? '#6BAE78'
+                    : pct >= 60 ? '#E8B84B'
+                    : '#C0544A'
+                return { label: meeting.title ?? `Meeting #${meeting.id}`, pct, color }
+            } catch {
+                return { label: meeting.title ?? `Meeting #${meeting.id}`, pct: null, color: '#C9993A' }
+            }
+        })
+    )
+}

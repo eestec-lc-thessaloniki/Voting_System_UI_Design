@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { getRecordsByRound, checkIn, checkOut } from '../../../services/AttendanceApi.js'
+import useAuthStore from '../../../services/authStore'
 import styles from './AttendanceRoundCard.module.css'
 
 export default function AttendanceRoundCard({ round, users, defaultExpanded, onDelete }) {
+    const { user } = useAuthStore()
 
     const [expanded, setExpanded] = useState(defaultExpanded)
     const [records, setRecords] = useState([])
@@ -33,10 +35,10 @@ export default function AttendanceRoundCard({ round, users, defaultExpanded, onD
         return 'in'
     }
 
-    const handleCheckIn = async (userId) => {
-        setActionLoading(userId + '_in')
+    const handleCheckIn = async (targetUserId) => {
+        setActionLoading(targetUserId + '_in')
         try {
-            await checkIn({ roundId: round.id, userId })
+            await checkIn({ roundId: round.id, userId: targetUserId, moderatorId: user.userId })
             await fetchRecords()
         } catch (err) {
             if (err?.response?.status === 409) {
@@ -49,10 +51,10 @@ export default function AttendanceRoundCard({ round, users, defaultExpanded, onD
         }
     }
 
-    const handleCheckOut = async (userId) => {
-        setActionLoading(userId + '_out')
+    const handleCheckOut = async (targetUserId) => {
+        setActionLoading(targetUserId + '_out')
         try {
-            await checkOut({ roundId: round.id, userId })
+            await checkOut({ roundId: round.id, userId: targetUserId, moderatorId: user.userId })
             await fetchRecords()
         } catch (err) {
             console.error('Check-out failed:', err)

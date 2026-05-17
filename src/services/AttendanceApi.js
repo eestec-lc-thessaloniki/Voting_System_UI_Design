@@ -35,14 +35,19 @@ export const deleteRound = async (roundId, adminId) => {
 
 // --- User Attendance Records ---
 
-export const checkIn = async ({ roundId, userId }) => {
-    const response = await client.post(`/attendance_records/check-in`, { roundId, userId })
+export const checkIn = async ({ roundId, userId, moderatorId }) => {
+    const response = await client.post(
+        '/attendance_records/check-in',
+        { roundId, userId },
+        moderatorId ? { params: { moderatorId } } : {}
+    )
     return response.data
 }
 
-// checkOut uses roundId + userId (not recordId)
-export const checkOut = async ({ roundId, userId }) => {
-    const response = await client.post(`/attendance_records/check-out`, { roundId, userId })
+export const checkOut = async ({ roundId, userId, moderatorId }) => {
+    const params = { roundId, userId }
+    if (moderatorId) params.moderatorId = moderatorId
+    const response = await client.post('/attendance_records/check-out', null, { params })
     return response.data
 }
 
@@ -58,5 +63,17 @@ export const getRecordsByRound = async (roundId) => {
 
 export const getRoundsByCheckId = async (checkId) => {
     const response = await client.get(`/attendance_rounds/check/${checkId}`)
+    return response.data
+}
+
+export const getChecksByMeeting = async (meetingId) => {
+    const response = await client.get(`/attendance_check/meeting/${meetingId}`)
+    return response.data
+}
+
+export const createAttendanceCheckForMeeting = async (meetingId, moderatorId) => {
+    const response = await client.post(`/attendance_check/meeting/${meetingId}`, null, {
+        params: { moderatorId }
+    })
     return response.data
 }

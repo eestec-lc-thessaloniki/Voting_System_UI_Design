@@ -7,32 +7,32 @@ import EventsCard from '../features/dashboard/comps/EventsCard'
 import AttendanceCard from '../features/dashboard/comps/AttendanceCard'
 import NoticeBoardCard from '../features/dashboard/comps/NoticeBoardCard'
 
-import { mockUser, mockWeather, mockAttendance } from '../features/dashboard/data/mockDashboard'
-import { fetchEvents, fetchAnnouncements, fetchStats, fetchPolls } from '../services/dashboardApi'
-
-const TODAY = 'Tuesday, February 17 · 2026'
+import { fetchEvents, fetchAnnouncements, fetchStats, fetchPolls, fetchAttendanceSessions } from '../services/dashboardApi'
 
 export default function DashboardPage() {
-    const [events, setEvents]   = useState([])
-    const [notices, setNotices] = useState([])
-    const [stats, setStats]     = useState([])
-    const [polls, setPolls]     = useState([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError]     = useState(null)
+    const [events, setEvents]         = useState([])
+    const [notices, setNotices]       = useState([])
+    const [stats, setStats]           = useState([])
+    const [polls, setPolls]           = useState([])
+    const [attendance, setAttendance] = useState([])
+    const [loading, setLoading]       = useState(true)
+    const [error, setError]           = useState(null)
 
     useEffect(() => {
         async function loadData() {
             try {
-                const [eventsData, announcementsData, statsData, pollsData] = await Promise.all([
+                const [eventsData, announcementsData, statsData, pollsData, attendanceData] = await Promise.all([
                     fetchEvents(),
                     fetchAnnouncements(),
                     fetchStats(),
                     fetchPolls(),
+                    fetchAttendanceSessions(),
                 ])
                 setEvents(eventsData)
                 setNotices(announcementsData)
                 setStats(statsData)
                 setPolls(pollsData)
+                setAttendance(attendanceData)
             } catch (err) {
                 console.error(err)
                 setError('Could not load live data.')
@@ -45,7 +45,7 @@ export default function DashboardPage() {
 
     return (
         <main className={styles.content}>
-            <HeroWelcome user={mockUser} weather={mockWeather} date={TODAY} />
+            <HeroWelcome />
             <StatRow stats={stats} />
 
             <div className={styles.mainGrid}>
@@ -54,7 +54,7 @@ export default function DashboardPage() {
             </div>
 
             <div className={styles.bottomGrid}>
-                <AttendanceCard sessions={mockAttendance} />
+                <AttendanceCard sessions={attendance} />
                 <NoticeBoardCard notices={notices} loading={loading} error={error} />
             </div>
         </main>
