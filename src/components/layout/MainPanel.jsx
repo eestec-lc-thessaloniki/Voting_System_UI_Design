@@ -1,5 +1,5 @@
 import styles from './MainPanel.module.css'
-import Topbar from './Topbar'
+import Topbar from './TopBar'
 
 export default function MainPanel({ children }) {
     return (

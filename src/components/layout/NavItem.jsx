@@ -9,6 +9,8 @@ const iconMap = {
     'message': 'message',
     'bar-chart': 'barChart',
     'settings': 'settings',
+    'user-check': 'userCheck',
+    'user': 'user',
 }
 
 export default function NavItem({ item, active, onSelect }) {

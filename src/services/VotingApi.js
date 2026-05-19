@@ -24,3 +24,11 @@ export const getPollOptions = async (pollId) => {
     const response = await client.get(`/poll-options/poll/${pollId}`)
     return response.data
 }
+
+export const startNextRound = async ({ pollId, candidateIds, moderatorId }) => {
+    const response = await client.post(`/elections/start-next-round/${pollId}`, {
+        candidateIds,
+        moderatorId,
+    })
+    return response.data
+}

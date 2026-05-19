@@ -10,6 +10,13 @@ export const getAllPolls = async () => {
     return response.data
 }
 
+export const openPollVoting = async ({ pollId, moderatorId }) => {
+    const response = await client.patch(`/polls/${pollId}/open-voting`, null, {
+        params: { moderatorId }
+    })
+    return response.data
+}
+
 export const getPollsByMeeting = async (meetingId) => {
     const response = await client.get(`/polls/meeting/${meetingId}`)
     return response.data

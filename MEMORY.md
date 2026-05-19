@@ -7,7 +7,8 @@
 #### Bug 2 — Fixed import path case mismatches
 Renamed 6 service/router files to consistent lowercase camelCase and updated all import sites.
 
-**Files renamed:**
+**Files renamed:**q
+
 - `services/AxiosClient.js` → `axiosClient.js`
 - `services/AuthApi.js` → `authApi.js`
 - `services/AuthStore.js` → `authStore.js`
@@ -178,7 +179,49 @@ Renamed 6 service/router files to consistent lowercase camelCase and updated all
 
 ---
 
+---
+
+### Fixes & Features — 2026-05-17 (session 5)
+
+#### Frontend — `PollCard` redesign (PollsPage)
+- `PollsPage.jsx`
+- Removed entire `AdminControlsPanel` component ("⚙ Attendance Controls") from `PollCard` — all attendance management is in `AttendancePage`
+- Added minimal "Open Voting" button for MODERATOR/ADMIN in `PollCard`, hidden once `VOTING_OPEN` or `WINNER_DECLARED`
+- Added results panel: visible when `alreadyVoted || winnerDeclared`; shows `FOR · AGAINST · BLANK` counts per candidate and `Winner:` line
+- `useElectionResults(poll.id)` always active (previously gated on `WINNER_DECLARED`) so tally appears immediately after voting
+- Removed stale imports: all `useAttendance` hooks, `useOpenPollVoting` was re-added as a standalone import
+
+---
+
+### Fixes & Features — 2026-05-17 (session 4)
+
+#### Frontend — Voting flow (PollsPage)
+- `PollsPage.jsx` — `AdminControlsPanel`: added "Open Voting" button (`PATCH /polls/{id}/open-voting`) visible when poll is not yet `VOTING_OPEN` or `WINNER_DECLARED`
+- `PollsPage.jsx` — `PollCard`: voting panel redesigned — removed candidate selection, shows only FOR/AGAINST/BLANK buttons; auto-uses `options?.[0]?.id` as `optionId` for backend; submit disabled with "No candidates configured" message if poll has no options
+- `usePolls.js`: `staleTime: 0`, `refetchInterval: 15s` — page auto-updates when moderator opens voting
+- `PollsApi.js` + `usePolls.js`: added `openPollVoting` API function and `useOpenPollVoting` hook
+- Removed `useElectionResults` from `PollCard` — post-vote UI shows only "✓ You have already voted" confirmation
+
+#### Frontend — Attendance (ManageRoundsTab)
+- `AttendanceApi.js`: added `closeRound(roundId, moderatorId)` calling `POST /attendance_rounds/{id}/close`
+- `ManageRoundsTab.jsx`: "＋ Open Round" always shown when check is open (removed `!hasActiveRound` guard); "Close Round" button appears on active rounds via `onClose` prop on `AttendanceRoundCard`
+- `AttendanceRoundCard.jsx`: accepts `onClose` / `closingRound` props; renders amber "Close Round" button in card header
+- `AttendanceRoundCard.module.css`: added `.btnClose` style (accent color)
+
+#### Frontend — ActiveMeetingTab
+- Removed "＋ New Poll" button, creation form, and all related state (`showPollForm`, `pollForm`, `creatingPoll`, `handleCreatePoll`, `handleCandidateChange`)
+- Removed `createAttendanceCheck` and `createPoll` imports (polls managed via PollsPage)
+
+#### Frontend — Console warnings fixed
+- `Icon.jsx`: added missing icons — `userCheck`, `sun`, `cloud`, `cloud-drizzle`, `cloud-rain`, `cloud-snow`, `cloud-lightning`, `help-circle`
+- `NavItem.jsx`: added `'user-check': 'userCheck'` to `iconMap` (Attendance nav item was rendering `undefined`)
+- `NoticeBoardCard.jsx`: changed `key={notice.id}` → `key={notice.id ?? i}` (notices without `id` field caused duplicate-key warnings)
+
+---
+
 ## Known Constraints
 
-- **Voting gate:** Fixed 2026-05-17 — see above.
-- **`PATCH` missing from CORS allowed methods** in `SecurityConfig` — may affect settings/profile update calls.
+- **Voting gate:** Fixed 2026-05-17
+- **`PATCH` CORS:** Fixed 2026-05-17
+- **Poll must have ≥ 1 candidate option in DB** — `castVote` backend requires valid `optionId`. Submit shows "No candidates configured" and is disabled otherwise.
+- **Multi-round voting blocked by DB unique constraint (NOT FIXED):** `votes` table unique constraint `UKe70p4va4tsm9uslnwx2456ddt` (on `user_id + poll_id`, without `round`) prevents the same user from voting in round 2+. Surfaces as 400 with message `Duplicate entry 'X-Y' for key 'votes.UKe70p4va4tsm9uslnwx2456ddt'` shown in PollCard. Backend fix: Liquibase migration to drop and recreate constraint with `round` included.

@@ -1,4 +1,4 @@
-import styles from './NavGroup.module.css'
+import styles from './Navgroup.module.css'
 import NavItem from './NavItem'
 
 export default function NavGroup({ group, active, onSelect }) {

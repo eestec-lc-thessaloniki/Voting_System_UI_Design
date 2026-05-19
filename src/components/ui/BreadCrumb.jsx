@@ -1,4 +1,4 @@
-import styles from './Breadcrumb.module.css'
+import styles from './BreadCrumb.module.css'
 
 export default function Breadcrumb({ items }) {
     return (

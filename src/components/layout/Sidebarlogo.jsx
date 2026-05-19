@@ -1,4 +1,4 @@
-import styles from './SidebarLogo.module.css'
+import styles from './Sidebarlogo.module.css'
 import logoImg from '../../assets/eestec.logo.png'
 
 export default function Sidebarlogo() {

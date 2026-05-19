@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { getAll as getAllMeetings } from '../../../services/MeetingApi'
 import { getRoundsByCheckId, getAttendanceSummary } from '../../../services/AttendanceApi'
 import { getPollsByMeeting } from '../../../services/PollsApi'
-import styles from './AttendanceHistoryTab.module.css'
+import styles from './AttendancehistoryTab.module.css'
 
 const MAX_MEETINGS = 5
 

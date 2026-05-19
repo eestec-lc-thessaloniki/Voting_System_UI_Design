@@ -1,7 +1,7 @@
 import Icon from '../ui/Icon'
 import useAuthStore from '../../services/authStore'
 import { useCurrentUserProfile } from '../../hooks/useUsers'
-import styles from './SidebarUser.module.css'
+import styles from './SideBarUser.module.css'
 
 export default function SidebarUser() {
     const { logout } = useAuthStore()
